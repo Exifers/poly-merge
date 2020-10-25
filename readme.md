@@ -5,10 +5,10 @@ attempt to make a fully customizable merge library.
 
 ## The algorithm
 The algorithm for merging javascript objects and arrays is the following :
-- merging two objects :
-The keys are added to the final object. If two keys are identical, the algorithm
-is applied on the value.
-```
+### Merging two objects :
+The keys are added to the final object. If two keys are identical, the same
+algorithm is applied recursively on the value.
+```js
 const object1 = {
   a: 1,
   b: { a: 1 }
@@ -29,10 +29,10 @@ console.log(result)
   c: 3
 }
 ```
-- merging two arrays :
+### Merging two arrays :
 This is where different behaviours may be expected :
-  - appending values to the final array
-```
+#### Appending values to the final array
+```javascript
 const array1 = [
   { a: 1 }
 ]
@@ -50,8 +50,8 @@ console.log(result)
   { b: 2 }
 ]
 ```
-  - merging by index
-```
+#### Merging by index
+```javascript
 const array1 = [
   { a: 1 },
   { b: 2 }
@@ -71,8 +71,8 @@ console.log(result)
   { b: 2, c: 3 }
 ]
 ```
-  - merging by a custom equality comparator
-```
+#### Merging by a custom equality comparator
+```javascript
 const array1 = [
   {
     a: 1,
@@ -113,9 +113,9 @@ console.log(result)
   }
 ]
 ```
-- merging two primitive types :
+#### Merging two primitive types
 The latter overrides the former.
-```
+```javascript
 const var1 = 1
 const var2 = 2
 
