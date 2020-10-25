@@ -1,6 +1,6 @@
 {
-  "name": "deepmerge",
-  "description": "A library for deep (recursive) merging of Javascript objects",
+  "name": "poly-merge",
+  "description": "A deep merge library highly configurable",
   "keywords": [
     "merge",
     "deep",
@@ -9,11 +9,11 @@
     "clone",
     "recursive"
   ],
-  "version": "4.2.2",
-  "homepage": "https://github.com/TehShrike/deepmerge",
+  "version": "1.0.2",
+  "homepage": "https://github.com/Exifers/poly-merge",
   "repository": {
     "type": "git",
-    "url": "git://github.com/TehShrike/deepmerge.git"
+    "url": "git://github.com/Exifers/poly-merge.git"
   },
   "main": "dist/cjs.js",
   "engines": {
