@@ -10,10 +10,62 @@ function cloneUnlessOtherwiseSpecified(value, options) {
 		: value
 }
 
-function defaultArrayMerge(target, source, options) {
+function concatArrayMerge(target, source, options) {
 	return target.concat(source).map(function(element) {
 		return cloneUnlessOtherwiseSpecified(element, options)
 	})
+}
+
+function getArrayMerge(option) {
+  if (option === deepmerge.CONCAT) {
+    return concatArrayMerge
+  }
+  else if (option === deepmerge.BY_INDEX) {
+    return byIndexArrayMerge
+  }
+  else {
+    if (
+      !Array.isArray(option) ||
+      option.length !== 2 ||
+      option[0] !== deepmerge.BY_IDENTIFIER ||
+      typeof option[1] !== 'function'
+    ) {
+      throw new Error(
+        `Invalid arrayMerge option, expected deepmerge.CONCAT, ` +
+        `deepmerge.BY_INDEX, or [deepmerge.BY_IDENTIFIER, ` +
+        `<identifier getter>] but received ${option}`
+      )
+    }
+    return (target, source, options) =>
+      byIdentifierArrayMerge(target, source, options, option[1])
+  }
+}
+
+function byIndexArrayMerge(target, source, options) {
+  const destination = target.slice()
+
+	source.forEach((item, index) => {
+		if (typeof destination[index] === 'undefined') {
+			destination[index] = options.cloneUnlessOtherwiseSpecified(item, options)
+		} else if (options.isMergeableObject(item)) {
+			destination[index] = deepmerge(target[index], item, options)
+		} else if (target.indexOf(item) === -1) {
+			destination.push(item)
+		}
+	})
+	return destination
+}
+
+function byIdentifierArrayMerge(target, source, options, getIdentifier) {
+  let pool = {}
+  const fillPool = item => {
+    const identifier = getIdentifier(item)
+    pool[identifier] = [...pool[identifier] || [], item]
+  }
+  source.forEach(fillPool)
+  target.forEach(fillPool)
+
+  return Object.values(pool).map(items => deepmerge.all(items))
 }
 
 function getMergeFunction(key, options) {
@@ -73,9 +125,13 @@ function mergeObject(target, source, options) {
 }
 
 function deepmerge(target, source, options) {
-	options = options || {}
-	options.arrayMerge = options.arrayMerge || defaultArrayMerge
-	options.isMergeableObject = options.isMergeableObject || defaultIsMergeableObject
+  options = Object.assign({}, {
+    arrayMerge: deepmerge.CONCAT,
+    isMergeableObject: defaultIsMergeableObject
+  }, options)
+  options.arrayMergeFn = options.arrayMerge
+    ? getArrayMerge(options.arrayMerge)
+    : concatArrayMerge
 	// cloneUnlessOtherwiseSpecified is added to `options` so that custom arrayMerge()
 	// implementations can use it. The caller may not replace it.
 	options.cloneUnlessOtherwiseSpecified = cloneUnlessOtherwiseSpecified
@@ -87,7 +143,7 @@ function deepmerge(target, source, options) {
 	if (!sourceAndTargetTypesMatch) {
 		return cloneUnlessOtherwiseSpecified(source, options)
 	} else if (sourceIsArray) {
-		return options.arrayMerge(target, source, options)
+		return options.arrayMergeFn(target, source, options)
 	} else {
 		return mergeObject(target, source, options)
 	}
@@ -102,5 +158,9 @@ deepmerge.all = function deepmergeAll(array, options) {
 		return deepmerge(prev, next, options)
 	}, {})
 }
+
+deepmerge.CONCAT = 'CONCAT'
+deepmerge.BY_INDEX = 'BY_INDEX'
+deepmerge.BY_IDENTIFIER = 'BY_IDENTIFIER'
 
 module.exports = deepmerge

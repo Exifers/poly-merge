@@ -103,7 +103,7 @@ const b = {
   ]
 }
 
-const merge(a,b, { arrayMerge: [merge.BY_IDENTIFIER, el => el.kind] })
+merge(a,b, { arrayMerge: [merge.BY_IDENTIFIER, el => el.kind] })
 >
 {
   a: {
